@@ -6,6 +6,9 @@
 
 W requirements.txt jest pytorch cpu.
 
+Lubię używać isort i black do formatu.
+Jak chcecie używać to piszcie `make format`
+
 ## TODO:
 * Przygotowanie danych treningowych i testowych - JK
 * stworzenie funkcji generującej self-attention mask - AG
