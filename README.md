@@ -2,14 +2,9 @@
 
 ## Introduction
 
-how to run script
-`poetry run python {path}`
+`python -m pip install requirements.txt`
 
-how to add library 
-`poetry add {library}`
-
-how install libraries
-`poetry install`
+W requirements.txt jest pytorch cpu.
 
 ## TODO:
 * Przygotowanie danych treningowych i testowych - JK
@@ -18,3 +13,19 @@ how install libraries
 * wybranie co najmniej jednego języka do tłumaczenia
     * Eng -> Ger
 * możliwość generowania tłumaczenia z jednego języka na drugi
+
+## Używane biblioteki
+Jakby kiedyś requirements.txt się zepsuło
+* numpy
+* pytorch
+* jupyter notebook
+* transformers
+* loguru
+
+## Zarządzanie danymi
+Nie będziemy zapisywać na repo wszystkich danych (nie zmieszczą się pewnie).
+Moim pomysłem jest zapisać je gdzieś w chumrze i zostawić linki w txt lub yml
+
+Przykład:
+* raw: drive.google.com/blablabla
+* preprocessed: drive.google.com/blebleble
