@@ -19,6 +19,7 @@ Jak chcecie używać to piszcie `make format`
 
 ## Używane biblioteki
 Jakby kiedyś requirements.txt się zepsuło
+* spacy
 * numpy
 * pytorch
 * jupyter notebook
