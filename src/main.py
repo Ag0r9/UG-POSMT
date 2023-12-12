@@ -1,4 +1,3 @@
-from loguru import logger
 from typing import List, Union, Tuple
 from transformers import MarianMTModel, MarianTokenizer
 import pandas as pd
