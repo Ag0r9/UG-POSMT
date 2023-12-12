@@ -6,13 +6,14 @@ try:
 except OSError:
     raise ModuleNotFoundError("core not found. Try `make lang`")
 
+
 def extract_token_info(token):
     # Recursively extract information for a given token and its children
     token_info = {
-        'text': token.text,
-        'pos': token.pos_,
-        'tag': token.tag_,
-        'children': [extract_token_info(child) for child in token.children]
+        "text": token.text,
+        "pos": token.pos_,
+        "tag": token.tag_,
+        "children": [extract_token_info(child) for child in token.children],
     }
     return token_info
 
@@ -29,6 +30,7 @@ def generate_mask(input: str):
             # Append token information to the list
             tokens_info.append(token_info)
     logger.info(tokens_info)
+
 
 if __name__ == "__main__":
     generate_mask("My name is Alice.")
