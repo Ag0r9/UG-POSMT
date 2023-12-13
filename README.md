@@ -25,6 +25,7 @@ Jakby kiedyś requirements.txt się zepsuło
 * jupyter notebook
 * transformers
 * loguru
+* pandas
 
 ## Zarządzanie danymi
 Nie będziemy zapisywać na repo wszystkich danych (nie zmieszczą się pewnie).
