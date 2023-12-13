@@ -9,7 +9,7 @@ class GenerateMask:
             self.en_core = spacy.load("en_core_web_sm")
         except OSError:
             raise ModuleNotFoundError("core not found. Try `make lang`")
-        self.mask: np.ndarray = None
+        self.mask: np.ndarray | None = None
 
     def extract_token_info(self, token):
         # Recursively extract information for a given token and its children
