@@ -1,36 +1,52 @@
 import spacy
 from loguru import logger
-
-try:
-    en_core = spacy.load("en_core_web_sm")
-except OSError:
-    raise ModuleNotFoundError("core not found. Try `make lang`")
+import numpy as np
 
 
-def extract_token_info(token):
-    # Recursively extract information for a given token and its children
-    token_info = {
-        "text": token.text,
-        "pos": token.pos_,
-        "tag": token.tag_,
-        "children": [extract_token_info(child) for child in token.children],
-    }
-    return token_info
+class GenerateMask:
+    def __init__(self) -> None:
+        try:
+            self.en_core = spacy.load("en_core_web_sm")
+        except OSError:
+            raise ModuleNotFoundError("core not found. Try `make lang`")
+        self.mask: np.ndarray = None
 
+    def extract_token_info(self, token):
+        # Recursively extract information for a given token and its children
+        token_info = {
+            "text": token.text,
+            "pos": token.pos_,
+            "tag": token.tag_,
+            "position": token.i,
+            "children": [self.extract_token_info(child) for child in token.children],
+        }
+        return token_info
 
-def generate_mask(input: str):
-    doc = en_core(input)
-    tokens_info = []
+    def fill_mask(self, tokens_info, parent_position=None):
+        for token in tokens_info:
+            if parent_position:
+                self.mask[token.get("position")] = self.mask[parent_position]
+            self.mask[token.get("position"), token.get("position")] = 1
+            self.fill_mask(token.get("children"))
 
-    # Iterate through each token in the sentence
-    for token in doc:
-        # Extract relevant information for each token
-        if token.dep_ == "ROOT":
-            token_info = extract_token_info(token)
-            # Append token information to the list
-            tokens_info.append(token_info)
-    logger.info(tokens_info)
+    def generate_mask(self, input: str):
+        doc = self.en_core(input)
+        tokens_info = []
+        n = len(doc)
+        self.mask: np.ndarray = np.zeros((n, n))
+
+        # Iterate through each token in the sentence
+        for token in doc:
+            # Extract relevant information for each token
+            if token.dep_ == "ROOT":
+                token_info = self.extract_token_info(token)
+                # Append token information to the list
+                tokens_info.append(token_info)
+
+        self.fill_mask(tokens_info)
+        logger.info(f"Created mask:\n{self.mask}")
 
 
 if __name__ == "__main__":
-    generate_mask("My name is Alice.")
+    generator = GenerateMask()
+    generator.generate_mask("My name is Alice.")
