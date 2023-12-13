@@ -18,7 +18,9 @@ class GenerateMask:
             "pos": token.pos_,
             "tag": token.tag_,
             "position": token.i,
-            "children": [self.extract_token_info(token=child) for child in token.children],
+            "children": [
+                self.extract_token_info(token=child) for child in token.children
+            ],
         }
         return token_info
 
@@ -27,7 +29,9 @@ class GenerateMask:
             if parent_position:
                 self.mask[token.get("position")] = self.mask[parent_position]
             self.mask[token.get("position"), token.get("position")] = 1
-            self.fill_mask(tokens_info=token.get("children"), parent_position=token.get("position"))
+            self.fill_mask(
+                tokens_info=token.get("children"), parent_position=token.get("position")
+            )
 
     def generate_mask(self, input: str):
         doc = self.en_core(input)
