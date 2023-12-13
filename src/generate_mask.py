@@ -18,7 +18,7 @@ class GenerateMask:
             "pos": token.pos_,
             "tag": token.tag_,
             "position": token.i,
-            "children": [self.extract_token_info(child) for child in token.children],
+            "children": [self.extract_token_info(token=child) for child in token.children],
         }
         return token_info
 
@@ -27,26 +27,26 @@ class GenerateMask:
             if parent_position:
                 self.mask[token.get("position")] = self.mask[parent_position]
             self.mask[token.get("position"), token.get("position")] = 1
-            self.fill_mask(token.get("children"))
+            self.fill_mask(tokens_info=token.get("children"), parent_position=token.get("position"))
 
     def generate_mask(self, input: str):
         doc = self.en_core(input)
         tokens_info = []
         n = len(doc)
-        self.mask: np.ndarray = np.zeros((n, n))
+        self.mask = np.zeros((n, n))
 
         # Iterate through each token in the sentence
         for token in doc:
             # Extract relevant information for each token
             if token.dep_ == "ROOT":
-                token_info = self.extract_token_info(token)
+                token_info = self.extract_token_info(token=token)
                 # Append token information to the list
                 tokens_info.append(token_info)
 
-        self.fill_mask(tokens_info)
+        self.fill_mask(tokens_info=tokens_info)
         logger.info(f"Created mask:\n{self.mask}")
 
 
 if __name__ == "__main__":
     generator = GenerateMask()
-    generator.generate_mask("My name is Alice.")
+    generator.generate_mask(input="My name is Alice.")
