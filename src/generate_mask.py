@@ -53,4 +53,6 @@ class GenerateMask:
 
 if __name__ == "__main__":
     generator = GenerateMask()
-    generator.generate_mask(input="My name is Alice.")
+    generator.generate_mask(input="Apple is looking at buying U.K. startup for $1 billion.")
+
+# TODO: patrzeć na rodzica tylko

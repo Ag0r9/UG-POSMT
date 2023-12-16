@@ -1,6 +1,7 @@
-from typing import List, Union, Tuple
-from transformers import MarianMTModel, MarianTokenizer
+from typing import List, Tuple, Union
+
 import pandas as pd
+from transformers import MarianMTModel, MarianTokenizer
 
 
 def get_data(data_file: str) -> Tuple[List, List]:
@@ -28,7 +29,7 @@ def main():
     model = MarianMTModel.from_pretrained(model_name)
 
     # loading data and dividing it to german and english
-    data_file = "../data/data.csv"
+    data_file = "data/data.csv"
     german_data, english_data = get_data(data_file)
 
     quantity = 5
@@ -48,3 +49,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO: create DataSet and DataLoader
