@@ -33,7 +33,7 @@ class MaskGenerator:
             logger.info(f"Loaded {model_name}")
         except OSError:
             raise ModuleNotFoundError("Language core not found. Try `make lang`")
-        self.mask: np.ndarray | None = None
+        self.mask: np.ndarray
 
     def extract_token_info(self, token: Token) -> dict[str, Any]:
         token_info = {
@@ -47,7 +47,9 @@ class MaskGenerator:
         }
         return token_info
 
-    def fill_mask(self, tokens_info: dict[str, Any], parent_position=None):
+    def fill_mask(
+        self, tokens_info: list[dict[str, Any]], parent_position: int | None = None
+    ):
         for token in tokens_info:
             if parent_position:
                 if self.shallow:
@@ -56,10 +58,11 @@ class MaskGenerator:
                     self.mask[token.get("position")] = self.mask[parent_position]
             self.mask[token.get("position"), token.get("position")] = 1
             self.fill_mask(
-                tokens_info=token.get("children"), parent_position=token.get("position")
+                tokens_info=token.get("children", []),
+                parent_position=token.get("position"),
             )
 
-    def generate_mask(self, input: str):
+    def generate_mask(self, input: str) -> np.ndarray:
         doc: Doc = self.en_core(input)
         tokens_info: list[dict[str, Any]] = []
         n: int = len(doc)
@@ -68,7 +71,7 @@ class MaskGenerator:
 
         for token in doc:
             if token.dep_ == "ROOT":
-                token_info = self.extract_token_info(token=token)
+                token_info: dict[str, Any] = self.extract_token_info(token=token)
                 tokens_info.append(token_info)
         logger.debug(f"Extracted tokens info:\n{tokens_info}")
 
