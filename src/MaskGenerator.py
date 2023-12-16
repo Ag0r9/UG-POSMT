@@ -25,8 +25,9 @@ class MaskGenerator:
         generate_mask: Generates the mask based on the input text.
     """
 
-    def __init__(self, shallow: bool = True) -> None:
+    def __init__(self, shallow: bool = True, look_at_children: bool = False) -> None:
         self.shallow: bool = shallow
+        self.look_at_children: bool = look_at_children
         try:
             model_name = "en_core_web_sm"
             self.en_core: Language = spacy.load(model_name)
@@ -56,7 +57,14 @@ class MaskGenerator:
                     self.mask[token.get("position"), parent_position] = 1
                 else:
                     self.mask[token.get("position")] = self.mask[parent_position]
+
             self.mask[token.get("position"), token.get("position")] = 1
+
+            if self.look_at_children:
+                self.mask[
+                    token.get("position"),
+                    [child.get("position") for child in token.get("children", [])],
+                ] = 1
             self.fill_mask(
                 tokens_info=token.get("children", []),
                 parent_position=token.get("position"),
