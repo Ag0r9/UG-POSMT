@@ -62,7 +62,7 @@ class MaskGenerator:
                 parent_position=token.get("position"),
             )
 
-    def generate_mask(self, input: str) -> np.ndarray:
+    def generate_mask(self, input: str):
         doc: Doc = self.en_core(input)
         tokens_info: list[dict[str, Any]] = []
         n: int = len(doc)
@@ -78,7 +78,6 @@ class MaskGenerator:
         self.fill_mask(tokens_info=tokens_info)
         logger.info(f"Mask filled for {input}")
         logger.debug(f"Created mask:\n{self.mask}")
-        return self.mask
 
 
 if __name__ == "__main__":
