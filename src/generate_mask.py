@@ -28,9 +28,11 @@ class MaskGenerator:
     def __init__(self, shallow: bool = True) -> None:
         self.shallow: bool = shallow
         try:
-            self.en_core: Language = spacy.load("en_core_web_sm")
+            model_name = "en_core_web_sm"
+            self.en_core: Language = spacy.load(model_name)
+            logger.info(f"Loaded {model_name}")
         except OSError:
-            raise ModuleNotFoundError("core not found. Try `make lang`")
+            raise ModuleNotFoundError("Language core not found. Try `make lang`")
         self.mask: np.ndarray | None = None
 
     def extract_token_info(self, token: Token) -> dict[str, Any]:
@@ -59,18 +61,21 @@ class MaskGenerator:
 
     def generate_mask(self, input: str):
         doc: Doc = self.en_core(input)
-        logger.debug(type(doc))
         tokens_info: list[dict[str, Any]] = []
         n: int = len(doc)
         self.mask = np.zeros((n, n))
+        logger.info(f"Created empty mask with shape {self.mask.shape}")
 
         for token in doc:
             if token.dep_ == "ROOT":
                 token_info = self.extract_token_info(token=token)
                 tokens_info.append(token_info)
+        logger.debug(f"Extracted tokens info:\n{tokens_info}")
 
         self.fill_mask(tokens_info=tokens_info)
-        logger.info(f"Created mask:\n{self.mask}")
+        logger.info(f"Mask filled for {input}")
+        logger.debug(f"Created mask:\n{self.mask}")
+        return self.mask
 
 
 if __name__ == "__main__":
