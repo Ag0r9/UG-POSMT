@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import Union
 
 import pandas as pd
 from datasets import load_dataset
@@ -8,32 +8,55 @@ from transformers import MarianMTModel, MarianTokenizer
 
 
 def translate(
-    text: Union[str, List], model: MarianMTModel, tokenizer: MarianTokenizer
-) -> List:
+    text: Union[str, list[str]], model: MarianMTModel, tokenizer: MarianTokenizer
+) -> list[str]:
     translated = model.generate(**tokenizer(text, return_tensors="pt", padding=True))
     return [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
 
 
 def get_dataloader() -> DataLoader:
-    dataset = load_dataset("wmt16", "de-en", split="test")
-    dataset_pt = dataset.with_format("torch")["translation"]
-    return DataLoader(dataset_pt, batch_size=64, shuffle=True)
+    return DataLoader(
+        dataset=load_dataset("wmt16", "de-en", split="test").with_format("torch")[
+            "translation"
+        ],
+        batch_size=64,
+        shuffle=True,
+    )
 
 
-def main(debug: bool = False):
+def main(
+    input_lang: str = "en",
+    output_lang: str = "de",
+    model_name: str = "Helsinki-NLP/opus-mt-en-de",
+    debug: bool = False,
+):
+    """
+    Main function for translation using a pre-trained model.
+
+    Args:
+        input_lang (str): Input language code (default is "en").
+        output_lang (str): Output language code (default is "de").
+        model_name (str): Name of the pre-trained model (default is "Helsinki-NLP/opus-mt-en-de").
+        debug (bool): Flag indicating whether to run in debug mode (default is False).
+    """
     # Getting a pre-trained model
-    model_name = "Helsinki-NLP/opus-mt-en-de"
-    tokenizer = MarianTokenizer.from_pretrained(model_name)
-    model = MarianMTModel.from_pretrained(model_name)
+    tokenizer: MarianTokenizer = MarianTokenizer.from_pretrained(model_name)
+    model: MarianMTModel = MarianMTModel.from_pretrained(model_name)
 
     # Getting the data
-    dataloader = get_dataloader()
+    dataloader: DataLoader = get_dataloader()
 
     if debug:
-        sample = next(iter(dataloader))
-        model_results = translate(sample.get("en"), model, tokenizer)
+        sample: dict[str, list[str]] = next(iter(dataloader))
+        model_results: list[str] = translate(
+            sample.get(input_lang, []), model, tokenizer
+        )
         pd.DataFrame(
-            {"en": sample.get("en"), "de": sample.get("de"), "model": model_results}
+            {
+                input_lang: sample.get(input_lang, []),
+                output_lang: sample.get(output_lang, []),
+                "model": model_results,
+            }
         ).to_csv("data/results.csv")
     else:
         logger.debug(
@@ -43,14 +66,3 @@ def main(debug: bool = False):
 
 if __name__ == "__main__":
     main(debug=True)
-
-# Nie jest nam potrzebne
-# class TranslationDataset(Dataset):
-#     def __init__(self, data_list):
-#         self.data_list = data_list
-
-#     def __len__(self):
-#         return len(self.data_list)
-
-#     def __getitem__(self, index):
-#         return self.data_list[index]
