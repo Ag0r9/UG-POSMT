@@ -36,7 +36,7 @@ def main(debug: bool = False):
             {"en": sample.get("en"), "de": sample.get("de"), "model": model_results}
         ).to_csv("data/results.csv")
     else:
-        logger.debbug(
+        logger.debug(
             "Trzeba zainplementować mierzenie jakości tłumaczenia dla całego datasetu"
         )
 
