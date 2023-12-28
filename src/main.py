@@ -2,7 +2,8 @@ from typing import List, Tuple, Union
 
 import pandas as pd
 from transformers import MarianMTModel, MarianTokenizer
-
+from datasets import load_dataset
+from torch.utils.data import DataLoader, Dataset
 
 def get_data(data_file: str) -> Tuple[List, List]:
     data = pd.read_csv(data_file)
@@ -50,4 +51,17 @@ def main():
 if __name__ == "__main__":
     main()
 
-# TODO: create DataSet and DataLoader
+    
+class TranslationDataset(Dataset):
+    def __init__(self, data_list):
+        self.data_list = data_list
+
+    def __len__(self):
+        return len(self.data_list)
+
+    def __getitem__(self, index):
+        return self.data_list[index]
+    
+data  = load_dataset("wmt16",'de-en', split="test")
+test_data = TranslationDataset(data['translation'])
+test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
