@@ -63,13 +63,13 @@ def main(
         ).to_csv("data/output/sample_output.csv")
     else:
         # Scoring translation using BLEU score
-        bleu_scores = []
+        bleu_scores: list[float] = []
 
         for batch in tqdm(dataloader):
-            input_texts = batch.get(input_lang, [])
-            target_texts = batch.get(output_lang, [])
+            input_texts: list[str] = batch.get(input_lang, [])
+            target_texts: list[str] = batch.get(output_lang, [])
 
-            model_results = translate(input_texts, model, tokenizer)
+            model_results: list[str] = translate(input_texts, model, tokenizer)
 
             bleu_scores.append(bleu_score(model_results, target_texts))
 
