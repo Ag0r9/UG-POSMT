@@ -1,5 +1,3 @@
-from config.paths import Paths
-
 from statistics import mean
 
 import pandas as pd
@@ -10,7 +8,10 @@ from torchtext.data.metrics import bleu_score
 from tqdm import tqdm
 from transformers import MarianMTModel, MarianTokenizer
 
+from config.paths import Paths
+
 paths = Paths()
+
 
 def get_dataloader() -> DataLoader:
     return DataLoader(
