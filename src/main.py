@@ -1,4 +1,5 @@
 from typing import Union
+from statistics import mean
 
 import pandas as pd
 from datasets import load_dataset
@@ -6,7 +7,7 @@ from loguru import logger
 from torch.utils.data import DataLoader
 from transformers import MarianMTModel, MarianTokenizer
 from torchtext.data.metrics import bleu_score
-from torchtext.data.metrics import bleu_score
+from tqdm import tqdm
 
 def translate(
     text: Union[str, list[str]], model: MarianMTModel, tokenizer: MarianTokenizer
@@ -61,22 +62,19 @@ def main(
         ).to_csv("data/output/sample_output.csv")
     else:
         # Scoring translation using BLEU score
-        reference_translations = []
-        model_translations = []
+        bleu_scores = []
 
-        for batch in dataloader:
+        for batch in tqdm(dataloader):
             input_texts = batch.get(input_lang, [])
             target_texts = batch.get(output_lang, [])
 
             model_results = translate(input_texts, model, tokenizer)
 
-            reference_translations.extend(target_texts)
-            model_translations.extend(model_results)
-
-        bleu = bleu_score(model_translations, reference_translations)
-        logger.info(f"BLEU score: {bleu}")
+            bleu_scores.append(bleu_score(model_results, target_texts))
+            
+        logger.info(f"BLEU score: {mean(bleu_scores)}")
         
 
 
 if __name__ == "__main__":
-    main(debug=True)
+    main(debug=False)
