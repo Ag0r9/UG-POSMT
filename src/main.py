@@ -5,7 +5,8 @@ from datasets import load_dataset
 from loguru import logger
 from torch.utils.data import DataLoader
 from transformers import MarianMTModel, MarianTokenizer
-
+from torchtext.data.metrics import bleu_score
+from torchtext.data.metrics import bleu_score
 
 def translate(
     text: Union[str, list[str]], model: MarianMTModel, tokenizer: MarianTokenizer
@@ -57,11 +58,24 @@ def main(
                 output_lang: sample.get(output_lang, []),
                 "model": model_results,
             }
-        ).to_csv("data/results.csv")
+        ).to_csv("data/output/sample_output.csv")
     else:
-        logger.debug(
-            "Trzeba zainplementować mierzenie jakości tłumaczenia dla całego datasetu"
-        )
+        # Scoring translation using BLEU score
+        reference_translations = []
+        model_translations = []
+
+        for batch in dataloader:
+            input_texts = batch.get(input_lang, [])
+            target_texts = batch.get(output_lang, [])
+
+            model_results = translate(input_texts, model, tokenizer)
+
+            reference_translations.extend(target_texts)
+            model_translations.extend(model_results)
+
+        bleu = bleu_score(model_translations, reference_translations)
+        logger.info(f"BLEU score: {bleu}")
+        
 
 
 if __name__ == "__main__":
