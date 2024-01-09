@@ -1,4 +1,6 @@
+import json
 from statistics import mean
+from time import localtime, strftime
 
 import pandas as pd
 from datasets import load_dataset
@@ -54,9 +56,9 @@ def create_bleu_score(
     output_lang: str,
     model: MarianMTModel,
     tokenizer: MarianTokenizer,
+    custom_mask: str = "none",
 ):
     bleu_scores: list[float] = []
-
     for batch in tqdm(dataloader):
         input_texts: list[str] = batch.get(input_lang, [])
         target_texts: list[str] = batch.get(output_lang, [])
@@ -64,5 +66,23 @@ def create_bleu_score(
         model_results: list[str] = translate(input_texts, model, tokenizer)
 
         bleu_scores.append(bleu_score(model_results, target_texts))
+        logger.debug(f"BLEU score: {bleu_scores[-1]}")
 
-    logger.info(f"BLEU score: {mean(bleu_scores)}")
+    filename: str = (
+        f"{input_lang}_{output_lang}_{strftime('%Y%m%d_%H%M%S', localtime())}.json"
+    )
+    paths.BLEU_SCORES_DIR.mkdir(parents=True, exist_ok=True)
+    with open(
+        paths.BLEU_SCORES_DIR / filename,
+        "w",
+    ) as f:
+        json.dump(
+            {
+                "model_name": model.name_or_path,
+                "input_lang": input_lang,
+                "output_lang": output_lang,
+                "custom_mask": custom_mask,
+                "BLEU score": mean(bleu_scores),
+            },
+            f,
+        )

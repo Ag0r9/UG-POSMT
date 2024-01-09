@@ -1,42 +1,47 @@
 from typing import Optional
 
 import typer
+from loguru import logger
 from torch.utils.data import DataLoader
 from transformers import MarianMTModel, MarianTokenizer
-from loguru import logger
 
+from config.settings import Settings
 from utils import create_bleu_score, create_sample, get_dataloader
 
 app = typer.Typer()
 
+settings = Settings()
+
 
 @app.command()
 def main(
-    input_lang: Optional[str] = "en",
-    output_lang: Optional[str] = "de",
-    model_name: Optional[str] = "Helsinki-NLP/opus-mt-en-de",
-    debug: Optional[bool] = True,
+    input_lang: Optional[str] = settings.input_lang,
+    output_lang: Optional[str] = settings.output_lang,
+    mt_model_name: Optional[str] = settings.mt_model_name,
+    sample: Optional[bool] = settings.sample,
 ):
     """
     Main function for translation using a pre-trained model.
 
     Args:
-        input_lang (str): Input language code (default is "en").
-        output_lang (str): Output language code (default is "de").
-        model_name (str): Name of the pre-trained model (default is "Helsinki-NLP/opus-mt-en-de").
-        debug (bool): Flag indicating whether to run in debug mode (default is False).
+        input_lang (str): Input language code.
+        output_lang (str): Output language code.
+        mt_model_name (str): Name of the pre-trained model.
+        sample (bool): Flag indicating whether to run only sample.
     """
     # Getting a pre-trained model
-    logger.info(f"Settings: {input_lang} -> {output_lang}, {model_name}, debug: {debug}")
-    tokenizer: MarianTokenizer = MarianTokenizer.from_pretrained(model_name)
-    model: MarianMTModel = MarianMTModel.from_pretrained(model_name)
-    logger.info(f"Model loaded: {model_name}")
+    logger.debug(
+        f"Settings: {input_lang} -> {output_lang}, model: {mt_model_name}, sample: {sample}"
+    )
+    tokenizer: MarianTokenizer = MarianTokenizer.from_pretrained(mt_model_name)
+    model: MarianMTModel = MarianMTModel.from_pretrained(mt_model_name)
+    logger.info(f"Model loaded: {mt_model_name}")
 
     # Getting the data
     dataloader: DataLoader = get_dataloader()
     logger.info("Data loaded")
 
-    if debug:
+    if sample:
         create_sample(dataloader, input_lang, output_lang, model, tokenizer)
     else:
         create_bleu_score(dataloader, input_lang, output_lang, model, tokenizer)
