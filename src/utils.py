@@ -41,6 +41,7 @@ def create_sample(
 ):
     sample: dict[str, list[str]] = next(iter(dataloader))
     model_results: list[str] = translate(sample.get(input_lang, []), model, tokenizer)
+    paths.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(
         {
             input_lang: sample.get(input_lang, []),
