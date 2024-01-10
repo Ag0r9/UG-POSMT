@@ -66,7 +66,10 @@ def create_bleu_score(
 
         model_results: list[str] = translate(input_texts, model, tokenizer)
 
-        bleu_scores.append(bleu_score(model_results, target_texts))
+        logger.debug(f"Target texts: {target_texts}")
+        logger.debug(f"Model results: {model_results}")
+
+        bleu_scores.append(bleu_score(candidate_corpus=model_results, references_corpus=target_texts))
         logger.debug(f"BLEU score: {bleu_scores[-1]}")
 
     filename: str = (
