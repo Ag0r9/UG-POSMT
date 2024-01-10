@@ -1,12 +1,12 @@
 import json
-from statistics import mean
+from statistics import mean, median
 from time import localtime, strftime
 
 import pandas as pd
 from datasets import load_dataset
 from loguru import logger
+from nltk.translate.bleu_score import sentence_bleu
 from torch.utils.data import DataLoader
-from torchtext.data.metrics import bleu_score
 from tqdm import tqdm
 from transformers import MarianMTModel, MarianTokenizer
 
@@ -66,11 +66,13 @@ def create_bleu_score(
 
         model_results: list[str] = translate(input_texts, model, tokenizer)
 
-        logger.debug(f"Target texts: {target_texts}")
-        logger.debug(f"Model results: {model_results}")
-
-        bleu_scores.append(bleu_score(candidate_corpus=model_results, references_corpus=target_texts))
-        logger.debug(f"BLEU score: {bleu_scores[-1]}")
+        for model_text, target_text in zip(model_results, target_texts):
+            bleu_scores.append(
+                sentence_bleu(
+                    references=[target_text.split()], hypothesis=model_text.split()
+                )
+            )
+            logger.debug(f"BLEU score: {bleu_scores[-1]}")
 
     filename: str = (
         f"{input_lang}_{output_lang}_{strftime('%Y%m%d_%H%M%S', localtime())}.json"
@@ -86,7 +88,10 @@ def create_bleu_score(
                 "input_lang": input_lang,
                 "output_lang": output_lang,
                 "custom_mask": custom_mask,
-                "BLEU score": mean(bleu_scores),
+                "BLEU score": {
+                    "mean": mean(bleu_scores),
+                    "median": median(bleu_scores),
+                },
             },
             f,
         )

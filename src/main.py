@@ -46,5 +46,6 @@ def main(
     else:
         create_bleu_score(dataloader, input_lang, output_lang, model, tokenizer)
 
+
 if __name__ == "__main__":
     app()
