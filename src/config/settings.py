@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from loguru import logger
 
 
 class Settings(BaseSettings):
