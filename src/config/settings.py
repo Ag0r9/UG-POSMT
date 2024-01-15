@@ -1,5 +1,11 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from enum import Enum
+
+class MaskingMethod(str, Enum):
+    none = 'none'
+    state2 = 'state2'
+
 
 class Settings(BaseSettings):
     input_lang: str = "en"

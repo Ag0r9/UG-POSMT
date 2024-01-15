@@ -72,7 +72,6 @@ def create_bleu_score(
                     references=[target_text.split()], hypothesis=model_text.split()
                 )
             )
-            logger.debug(f"BLEU score: {bleu_scores[-1]}")
 
     filename: str = (
         f"{input_lang}_{output_lang}_{strftime('%Y%m%d_%H%M%S', localtime())}.json"

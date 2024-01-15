@@ -8,12 +8,9 @@ from transformers import MarianMTModel, MarianTokenizer
 from config.settings import Settings
 from utils import create_bleu_score, create_sample, get_dataloader
 
-app = typer.Typer()
-
 settings = Settings()
 
 
-@app.command()
 def main(
     input_lang: Optional[str] = settings.input_lang,
     output_lang: Optional[str] = settings.output_lang,
@@ -48,4 +45,4 @@ def main(
 
 
 if __name__ == "__main__":
-    app()
+    typer.run(main)
