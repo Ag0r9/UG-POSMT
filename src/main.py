@@ -1,68 +1,48 @@
-from typing import Union
+from typing import Optional
 
-import pandas as pd
-from datasets import load_dataset
+import typer
 from loguru import logger
 from torch.utils.data import DataLoader
 from transformers import MarianMTModel, MarianTokenizer
 
+from config.settings import Settings
+from utils import create_bleu_score, create_sample, get_dataloader
 
-def translate(
-    text: Union[str, list[str]], model: MarianMTModel, tokenizer: MarianTokenizer
-) -> list[str]:
-    translated = model.generate(**tokenizer(text, return_tensors="pt", padding=True))
-    return [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
-
-
-def get_dataloader() -> DataLoader:
-    return DataLoader(
-        dataset=load_dataset("wmt16", "de-en", split="test").with_format("torch")[
-            "translation"
-        ],
-        batch_size=64,
-        shuffle=True,
-    )
+settings = Settings()
 
 
 def main(
-    input_lang: str = "en",
-    output_lang: str = "de",
-    model_name: str = "Helsinki-NLP/opus-mt-en-de",
-    debug: bool = False,
+    input_lang: Optional[str] = settings.input_lang,
+    output_lang: Optional[str] = settings.output_lang,
+    mt_model_name: Optional[str] = settings.mt_model_name,
+    sample: Optional[bool] = settings.sample,
 ):
     """
     Main function for translation using a pre-trained model.
 
     Args:
-        input_lang (str): Input language code (default is "en").
-        output_lang (str): Output language code (default is "de").
-        model_name (str): Name of the pre-trained model (default is "Helsinki-NLP/opus-mt-en-de").
-        debug (bool): Flag indicating whether to run in debug mode (default is False).
+        input_lang (str): Input language code.
+        output_lang (str): Output language code.
+        mt_model_name (str): Name of the pre-trained model.
+        sample (bool): Flag indicating whether to run only sample.
     """
     # Getting a pre-trained model
-    tokenizer: MarianTokenizer = MarianTokenizer.from_pretrained(model_name)
-    model: MarianMTModel = MarianMTModel.from_pretrained(model_name)
+    logger.debug(
+        f"Settings: {input_lang} -> {output_lang}, model: {mt_model_name}, sample: {sample}"
+    )
+    tokenizer: MarianTokenizer = MarianTokenizer.from_pretrained(mt_model_name)
+    model: MarianMTModel = MarianMTModel.from_pretrained(mt_model_name)
+    logger.info(f"Model loaded: {mt_model_name}")
 
     # Getting the data
     dataloader: DataLoader = get_dataloader()
+    logger.info("Data loaded")
 
-    if debug:
-        sample: dict[str, list[str]] = next(iter(dataloader))
-        model_results: list[str] = translate(
-            sample.get(input_lang, []), model, tokenizer
-        )
-        pd.DataFrame(
-            {
-                input_lang: sample.get(input_lang, []),
-                output_lang: sample.get(output_lang, []),
-                "model": model_results,
-            }
-        ).to_csv("data/results.csv")
+    if sample:
+        create_sample(dataloader, input_lang, output_lang, model, tokenizer)
     else:
-        logger.debug(
-            "Trzeba zainplementować mierzenie jakości tłumaczenia dla całego datasetu"
-        )
+        create_bleu_score(dataloader, input_lang, output_lang, model, tokenizer)
 
 
 if __name__ == "__main__":
-    main(debug=True)
+    typer.run(main)

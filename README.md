@@ -5,6 +5,10 @@
 How to install libraries
 `python -m pip install requirements.txt`
 
+## How to run
+
+`python src/main.py`
+
 ## Used packages
 * spacy
 * numpy
