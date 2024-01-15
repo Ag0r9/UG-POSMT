@@ -25,7 +25,12 @@ class MaskGenerator:
         generate_mask: Generates the mask based on the input text.
     """
 
-    def __init__(self, shallow: bool = True, look_at_children: bool = False, input_lang: str = "en") -> None:
+    def __init__(
+        self,
+        shallow: bool = True,
+        look_at_children: bool = False,
+        input_lang: str = "en",
+    ) -> None:
         self.shallow: bool = shallow
         self.look_at_children: bool = look_at_children
         try:
