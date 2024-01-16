@@ -33,7 +33,7 @@ class MaskGenerator:
     The mask represents the relationships between tokens in the text.
 
     Args:
-        inherit_from_parent (bool, optional): Whether to inherit the mask value from the parent token.
+        inherit_from_parent (bool, optional): Whether to inherit the mask value from the parent.
         look_at_children (bool, optional): Whether to include children tokens in the mask.
         look_at_yourself (bool, optional): Whether to include the token itself in the mask.
         input_lang (str, optional): The language of the input text..
@@ -104,7 +104,8 @@ class MaskGenerator:
 
         Args:
             tokens_info (list[dict[str, Any]]): A list of dictionaries containing token information.
-            parent_position (int | None, optional): The position of the parent token. Defaults to None.
+            parent_position (int | None, optional): The position of the parent token.
+                Defaults to None.
         """
         for token in tokens_info:
             if parent_position:
