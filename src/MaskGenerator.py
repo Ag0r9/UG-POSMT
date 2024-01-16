@@ -7,32 +7,47 @@ from spacy.language import Language
 from spacy.tokens import Doc, Token
 
 
+def get_method(method_name: str) -> dict[str, bool]:
+    methods: dict[str, tuple[bool]] = {
+        "shallow": (False, False, True),
+        "deep": (True, False, True),
+        "only_children": (False, True, False),
+        "only_parent": (True, False, False),
+        "only_self": (False, False, True),
+        "full": (True, True, True)
+    }
+    look_at_children, inherit_from_parent, look_at_yourself = methods[method_name]
+    return {
+        "look_at_children": look_at_children,
+        "inherit_from_parent": inherit_from_parent,
+        "look_at_yourself": look_at_yourself,
+    }
+
+
 class MaskGenerator:
     """
-    Generates a mask based on the input text using spaCy library.
+    Generates a mask based on the input text using spaCy language processing library.
+    The mask represents the relationships between tokens in the text.
 
     Args:
-        shallow (bool, optional): Specifies whether to use shallow masking. Defaults to True.
-
-    Attributes:
-        shallow (bool): Specifies whether to use shallow masking.
-        en_core (Language): The spaCy language model.
-        mask (np.ndarray | None): The generated mask.
-
-    Methods:
-        extract_token_info: Extracts information about a token.
-        fill_mask: Fills the mask based on the token information.
-        generate_mask: Generates the mask based on the input text.
+        inherit_from_parent (bool, optional): Whether to inherit the mask value from the parent token.
+            Defaults to False.
+        look_at_children (bool, optional): Whether to include children tokens in the mask.
+            Defaults to False.
+        look_at_yourself (bool, optional): Whether to include the token itself in the mask.
+            Defaults to True.
+        input_lang (str, optional): The language of the input text. Defaults to "en".
     """
-
     def __init__(
         self,
-        shallow: bool = True,
+        inherit_from_parent: bool = False,
         look_at_children: bool = False,
+        look_at_yourself: bool = True,
         input_lang: str = "en",
     ) -> None:
-        self.shallow: bool = shallow
+        self.inherit_from_parent: bool = inherit_from_parent
         self.look_at_children: bool = look_at_children
+        self.look_at_yourself: bool = look_at_yourself
         try:
             model_name = "en_core_web_sm"
             self.en_core: Language = spacy.load(model_name)
@@ -58,12 +73,13 @@ class MaskGenerator:
     ):
         for token in tokens_info:
             if parent_position:
-                if self.shallow:
-                    self.mask[token.get("position"), parent_position] = 1
-                else:
+                if self.inherit_from_parent:
                     self.mask[token.get("position")] = self.mask[parent_position]
-
-            self.mask[token.get("position"), token.get("position")] = 1
+                else:
+                    self.mask[token.get("position"), parent_position] = 1
+                    
+            if self.look_at_yourself:
+                self.mask[token.get("position"), token.get("position")] = 1
 
             if self.look_at_children:
                 self.mask[
