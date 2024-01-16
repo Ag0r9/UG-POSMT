@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 import numpy as np
@@ -6,15 +7,17 @@ from loguru import logger
 from spacy.language import Language
 from spacy.tokens import Doc, Token
 
+from config.paths import Paths
+
 
 def get_method(method_name: str) -> dict[str, bool]:
-    methods: dict[str, tuple[bool]] = {
+    methods: dict[str, tuple[bool, bool, bool]] = {
         "shallow": (False, False, True),
         "deep": (True, False, True),
         "only_children": (False, True, False),
         "only_parent": (True, False, False),
-        "only_self": (False, False, True),
-        "full": (True, True, True)
+        "full": (True, True, True),
+        "full_without_yourself": (True, True, False),
     }
     look_at_children, inherit_from_parent, look_at_yourself = methods[method_name]
     return {
@@ -31,32 +34,57 @@ class MaskGenerator:
 
     Args:
         inherit_from_parent (bool, optional): Whether to inherit the mask value from the parent token.
-            Defaults to False.
         look_at_children (bool, optional): Whether to include children tokens in the mask.
-            Defaults to False.
         look_at_yourself (bool, optional): Whether to include the token itself in the mask.
-            Defaults to True.
-        input_lang (str, optional): The language of the input text. Defaults to "en".
+        input_lang (str, optional): The language of the input text..
     """
+
     def __init__(
         self,
-        inherit_from_parent: bool = False,
-        look_at_children: bool = False,
-        look_at_yourself: bool = True,
-        input_lang: str = "en",
+        inherit_from_parent: bool,
+        look_at_children: bool,
+        look_at_yourself: bool,
+        input_lang: str,
     ) -> None:
+        self._paths: Paths = Paths()
         self.inherit_from_parent: bool = inherit_from_parent
         self.look_at_children: bool = look_at_children
         self.look_at_yourself: bool = look_at_yourself
         try:
-            model_name = "en_core_web_sm"
-            self.en_core: Language = spacy.load(model_name)
-            logger.info(f"Loaded {model_name}")
+            with open(self._paths.CONFIG_DIR / "language_models.json", "r") as file:
+                language_models: dict[str, str] = json.load(file)
+        except FileNotFoundError:
+            raise ModuleNotFoundError("Language models not found.")
+        try:
+            model_name = language_models[input_lang]
+            self.lang_core: Language = spacy.load(model_name)
+            logger.info(f"Loaded {self.lang_core}")
         except OSError:
             raise ModuleNotFoundError("Language core not found. Try `make lang`")
         self.mask: np.ndarray
 
+    def set_method(self, method_name: str):
+        """
+        Changes the masking method.
+
+        Args:
+            method_name (str): The name of the masking method.
+        """
+        args: dict[str, bool] = get_method(method_name)
+        self.inherit_from_parent = args["inherit_from_parent"]
+        self.look_at_children = args["look_at_children"]
+        self.look_at_yourself = args["look_at_yourself"]
+
     def extract_token_info(self, token: Token) -> dict[str, Any]:
+        """
+        Extracts information about a token.
+
+        Args:
+            token (Token): The token to extract information from.
+
+        Returns:
+            dict[str, Any]: A dictionary containing the token information.
+        """
         token_info = {
             "text": token.text,
             "pos": token.pos_,
@@ -71,13 +99,20 @@ class MaskGenerator:
     def fill_mask(
         self, tokens_info: list[dict[str, Any]], parent_position: int | None = None
     ):
+        """
+        Fills the mask based on the tokens information.
+
+        Args:
+            tokens_info (list[dict[str, Any]]): A list of dictionaries containing token information.
+            parent_position (int | None, optional): The position of the parent token. Defaults to None.
+        """
         for token in tokens_info:
             if parent_position:
                 if self.inherit_from_parent:
                     self.mask[token.get("position")] = self.mask[parent_position]
                 else:
                     self.mask[token.get("position"), parent_position] = 1
-                    
+
             if self.look_at_yourself:
                 self.mask[token.get("position"), token.get("position")] = 1
 
@@ -92,7 +127,16 @@ class MaskGenerator:
             )
 
     def generate_mask(self, input: str):
-        doc: Doc = self.en_core(input)
+        """
+        Generates the mask for the input text.
+
+        Args:
+            input (str): The input text.
+
+        Returns:
+            np.ndarray: The generated mask.
+        """
+        doc: Doc = self.lang_core(input)
         tokens_info: list[dict[str, Any]] = []
         n: int = len(doc)
         self.mask = np.zeros((n, n))
@@ -107,10 +151,21 @@ class MaskGenerator:
         self.fill_mask(tokens_info=tokens_info)
         logger.info(f"Mask filled for {input}")
         logger.debug(f"Created mask:\n{self.mask}")
+        return self.mask
 
 
 if __name__ == "__main__":
-    generator = MaskGenerator()
-    generator.generate_mask(
-        input="Apple is looking at buying U.K. startup for $1 billion."
-    )
+    args = get_method("shallow")
+    generator = MaskGenerator(input_lang="en", **args)
+    for method in [
+        "shallow",
+        "deep",
+        "only_children",
+        "only_parent",
+        "only_self",
+        "full",
+    ]:
+        generator.set_method(method)
+        generator.generate_mask(
+            input="Apple is looking at buying U.K. startup for $1 billion."
+        )
