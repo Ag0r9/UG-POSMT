@@ -163,7 +163,6 @@ if __name__ == "__main__":
         "deep",
         "only_children",
         "only_parent",
-        "only_self",
         "full",
     ]:
         generator.set_method(method)
