@@ -97,7 +97,7 @@ class MaskGenerator:
         return token_info
 
     def fill_mask(
-        self, tokens_info: list[dict[str, Any]], parent_position: Optional[int] = None 
+        self, tokens_info: list[dict[str, Any]], parent_position: Optional[int] = None
     ):
         """
         Fills the mask based on the tokens information.
@@ -169,3 +169,4 @@ if __name__ == "__main__":
         generator.generate_mask(
             input="Apple is looking at buying U.K. startup for $1 billion."
         )
+        
