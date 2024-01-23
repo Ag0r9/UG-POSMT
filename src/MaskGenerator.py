@@ -1,5 +1,5 @@
 import json
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import spacy
@@ -97,7 +97,7 @@ class MaskGenerator:
         return token_info
 
     def fill_mask(
-        self, tokens_info: list[dict[str, Any]], parent_position: int | None = None
+        self, tokens_info: list[dict[str, Any]], parent_position: Optional[int] = None 
     ):
         """
         Fills the mask based on the tokens information.
