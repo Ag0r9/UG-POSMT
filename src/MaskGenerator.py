@@ -169,4 +169,3 @@ if __name__ == "__main__":
         generator.generate_mask(
             input="Apple is looking at buying U.K. startup for $1 billion."
         )
-        
