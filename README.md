@@ -35,7 +35,6 @@ There's 6 methods which were created by using 3 flags
 | ------ | ----------- | ----------- | ----------- |
 | shallow | False | False | True |
 | deep | True | False | True |
-| only_children | False | True | False |
 | only_parent | True | False | True |
 | full | True | True | True |
 | full_without_yourself | True | True | False |
