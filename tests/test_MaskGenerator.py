@@ -6,7 +6,7 @@ from src.MaskGenerator import MaskGenerator
 
 @pytest.fixture
 def mask_generator():
-    return MaskGenerator()
+    return MaskGenerator(True, False, True, "en")
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ def tokens_info():
 
 
 def test_extract_token_info(mask_generator):
-    doc = Doc(mask_generator.en_core.vocab, words=["This", "is", "a", "test"])
+    doc = Doc(mask_generator.lang_core.vocab, words=["This", "is", "a", "test"])
     token = doc[0]
     token_info = mask_generator.extract_token_info(token)
     assert token_info == {
@@ -60,6 +60,6 @@ def test_extract_token_info(mask_generator):
 
 def test_generate_mask(mask_generator):
     input_text = "This is a test"
-    expected_mask = np.array([[1, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 1], [0, 1, 0, 1]])
+    expected_mask = np.array([[1, 1, 0, 0], [0, 1, 0, 0], [0, 1, 1, 1], [0, 1, 0, 1]])
     mask_generator.generate_mask(input_text)
     assert np.array_equal(mask_generator.mask, expected_mask)

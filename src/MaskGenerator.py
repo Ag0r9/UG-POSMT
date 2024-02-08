@@ -7,7 +7,7 @@ from loguru import logger
 from spacy.language import Language
 from spacy.tokens import Doc, Token
 
-from config.paths import Paths
+from src.config.paths import Paths
 
 
 def get_method(method_name: str) -> dict[str, bool]:
